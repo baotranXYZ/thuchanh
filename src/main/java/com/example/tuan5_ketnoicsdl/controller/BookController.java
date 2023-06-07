@@ -1,10 +1,13 @@
 package com.example.tuan5_ketnoicsdl.controller;
+import com.example.tuan5_ketnoicsdl.daos.Item;
 import com.example.tuan5_ketnoicsdl.entity.Book;
 import com.example.tuan5_ketnoicsdl.entity.Category;
 import com.example.tuan5_ketnoicsdl.repository.IBookRepository;
 import com.example.tuan5_ketnoicsdl.repository.ICategoryRepository;
 import com.example.tuan5_ketnoicsdl.services.BookService;
+import com.example.tuan5_ketnoicsdl.services.CartService;
 import com.example.tuan5_ketnoicsdl.services.CategoryService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,6 +23,8 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/books")
 public class BookController {
+    @Autowired
+    private CartService cartService;
     @Autowired
     private BookService bookService;
     @Autowired
@@ -79,6 +84,27 @@ public class BookController {
         return "redirect:/books";
     }
 
-   
+    @GetMapping("/search")
+    public String searchBooks(@RequestParam("keyword") String keyword, Model model) {
+        List<Book> books = bookService.searchBooks(keyword);
+        model.addAttribute("books", books);
+        model.addAttribute("keyword", keyword);
+        return "book/list";
+    }
+
+    @PostMapping("/add-to-cart")
+    public String addToCart(HttpSession session,
+                            @RequestParam long id,
+                            @RequestParam String name,
+                            @RequestParam double price,
+                            @RequestParam(defaultValue = "1") int quantity)
+    {
+        var cart = cartService.getCart(session);
+        cart.addItems(new Item(id, name, price, quantity));
+        cartService.updateCart(session, cart);
+        return "redirect:/books";
+    }
+
+
 
 }

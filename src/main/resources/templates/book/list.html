@@ -3,6 +3,54 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
       lang="en">
 <head>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+        $(document).ready(function() {
+            $('input[name="keyword"]').on('input', function() {
+                var keyword = $(this).val();
+                if (keyword.trim().length > 0) {
+                    getAutocompleteResults(keyword);
+                } else {
+                    hideAutocomplete();
+                }
+            });
+
+            function getAutocompleteResults(keyword) {
+                $.ajax({
+                    url: '/books/search-suggestions',
+                    type: 'GET',
+                    data: {keyword: keyword},
+                    success: function(response) {
+                        showAutocomplete(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            function showAutocomplete(results) {
+                var autocompleteContainer = $('#autocompleteContainer');
+                autocompleteContainer.empty();
+                for (var i = 0; i < results.length; i++) {
+                    var result = results[i];
+                    var div = $('<div></div>');
+                    div.text(result);
+                    div.addClass('autocomplete-item');
+                    div.on('click', function() {
+                        var selectedValue = $(this).text();
+                        $('input[name="keyword"]').val(selectedValue);
+                        hideAutocomplete();
+                    });
+                    autocompleteContainer.append(div);
+                }
+            }
+
+            function hideAutocomplete() {
+                $('#autocompleteContainer').empty();
+            }
+        });
+    </script>
   <meta charset="UTF-8">
   <title>My Book List</title>
   <th:block th:replace="Layout :: link-css"> </th:block>
@@ -11,6 +59,14 @@
 <th:block th:replace="layout :: header"></th:block>
 <div class="container">
   <h1 th:text="${title}"></h1>
+  <form th:action="@{/books/search}" method="GET" class="mb-3">
+    <div class="input-group">
+      <input type="text" class="form-control" name="keyword" placeholder="Search by title or category">
+      <div id="autocompleteContainer"></div>
+      <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+  </form>
+
   <table class="table">
     <tr>
       <th>ID</th>
@@ -31,6 +87,16 @@
         <a th:href="@{/books/update/{id}(id=${book.id})}">Edit</a> |
         <a th:href="@{/books/delete/{id}(id=${book.id})}"
            onclick="return confirm('Are you sure?')">Delete</a>
+        <form th:action="@{/books/add-to-cart}" method="post" class="d-inline">
+          <input type="hidden" name="id" th:value="${book.getId()}">
+          <input type="hidden" name="name"
+                 th:value="${book.getTitle()}">
+          <input type="hidden" name="price"
+                 th:value="${book.getPrice()}">
+          <button type="submit" class="btn btn-success"
+                  onclick="return confirm('Are you sure you want to add this book to cart?')">
+            Add to cart</button>
+        </form>
       </td>
     </tr>
   </table>

@@ -26,5 +26,8 @@ public class BookService {
         bookRepository.deleteById(id);
     }
 
+    public List<Book> searchBooks(String keyword) {
+        return bookRepository.searchBooks(keyword.toLowerCase());
+    }
 
 }

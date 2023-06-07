@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .hasAnyAuthority("ADMIN", "USER")
                         .anyRequest().authenticated()
                 )
-                .logout(logout -> logout.logoutUrl("logout")
+                .logout(logout -> logout.logoutUrl("/logout")
                         .logoutSuccessUrl("/login")
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
